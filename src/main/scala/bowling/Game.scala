@@ -42,10 +42,10 @@ object Game {
         case _ => frames :+ LastFrame(pins)
       }
       case firstFrames :+ lastFrame => lastFrame match {
-        case FinishedLastFrame(_, _) => throw new Exception("The game has ended")
-        case FinishedBonusLastFrame(_, _, _) => throw new Exception("The game has ended")
+        case FinishedLastFrame(_, _) => throw new IllegalStateException("The game has ended")
+        case FinishedBonusLastFrame(_, _, _) => throw new IllegalStateException("The game has ended")
         case UnfinishedLastFrame(firstScore) => firstFrames :+ LastFrame(firstScore, pins)
-        case UnfinishedBonusLastFrame(firstScore, secondScore) => firstFrames :+ LastFrame(firstScore, secondScore, pins)
+        case UnfinishedBonusLastFrame(firstScore, secondScore) => firstFrames :+ FinishedBonusLastFrame(firstScore, secondScore, pins)
         case UnfinishedFrame(firstScore) => firstFrames :+ Frame(firstScore, pins)
         case _ => frames :+ Frame(pins)
       }
@@ -57,7 +57,6 @@ object Game {
       case UnfinishedOneBonusStrike(bonus) => FinishedStrike(bonus, pins)
       case UnfinishedTwoBonusStrike() => UnfinishedOneBonusStrike(pins)
       case UnfinishedBonusSpare(s1, s2) => FinishedSpare(s1, s2, pins)
-      case UnfinishedBonusLastFrame(s1, s2) => FinishedBonusLastFrame(s1, s2, pins)
       case other => other
     }
   }

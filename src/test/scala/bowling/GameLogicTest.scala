@@ -63,4 +63,68 @@ class GameLogicTest extends AnyWordSpec with Matchers {
     }
   }
 
+  "scores method" should {
+    "give a correct score - simple games" in {
+      checkScores(List(1, 2, 3), List(1, 3, 6))
+      checkScores(List(5, 3, 2, 5), List(5, 8, 10, 15))
+    }
+    "give a correct score - strikes" in {
+      checkScores(List(1, 2, 10, 2, 4), List(1, 3, 13, 17, 25))
+      checkScores(List(10, 2, 4, 10, 1, 2), List(10, 14, 22, 32, 34, 38))
+    }
+    "give a correct score - spares" in {
+      checkScores(List(1, 9, 1, 2), List(1, 10, 12, 14))
+      checkScores(List(10, 1, 9, 8, 2, 2, 3), List(10, 12, 30, 46, 48, 52, 55))
+    }
+    "give a correct score - last game with bonus strike" in {
+      checkLastScore(List(3, 0, 1, 9, 8, 2, 2, 3, 8, 2, 3, 2, 4, 5, 4, 3, 5, 5, 10, 6, 3), 111)
+    }
+    "give a correct score - last game with bonus spare and final strike" in {
+      checkLastScore(List(3, 0, 1, 9, 8, 2, 2, 3, 8, 2, 3, 2, 4, 5, 4, 3, 5, 5, 1, 9, 10), 103)
+    }
+    "give a correct score - last game without bonuses" in {
+      checkLastScore(List(3, 0, 1, 9, 8, 2, 2, 3, 8, 2, 3, 2, 4, 5, 4, 3, 5, 5, 3, 5), 93)
+    }
+    "give a correct score - perfect game" in {
+      checkLastScore(List(10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10), 300)
+    }
+    "throw error - too much moves" in {
+      the [IllegalStateException] thrownBy playGame(List(10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1))
+      the [IllegalStateException] thrownBy playGame(List(3, 0, 1, 9, 8, 2, 2, 3, 8, 2, 3, 2, 4, 5, 4, 3, 5, 5, 3, 5, 1))
+      the [IllegalStateException] thrownBy playGame(List(3, 0, 1, 9, 8, 2, 2, 3, 8, 2, 3, 2, 4, 5, 4, 3, 5, 5, 1, 9, 10, 1))
+      the [IllegalStateException] thrownBy playGame(List(3, 0, 1, 9, 8, 2, 2, 3, 8, 2, 3, 2, 4, 5, 4, 3, 5, 5, 10, 6, 3, 1))
+    }
+    "throw error - illigal number of pins" in {
+      the[IllegalArgumentException] thrownBy playGame(List(9, 2))
+      the[IllegalArgumentException] thrownBy playGame(List(3, 2, 11))
+      the[IllegalArgumentException] thrownBy playGame(List(4, 2, 1, 10))
+    }
+  }
+
+  def checkScores(pins: List[Int], expectedScores: List[Int]): Unit = {
+    pins.length shouldEqual expectedScores.length
+    var game = Game()
+
+    pins.zip(expectedScores).foreach{case (pin, expectedScore) =>
+      game = game.recordThrow(pin)
+      game.score shouldEqual(expectedScore)
+    }
+  }
+
+  def checkLastScore(pins: List[Int], expectedScore: Int): Unit = {
+    var game = Game()
+
+    pins.foreach{pin =>
+      game = game.recordThrow(pin)
+    }
+    game.score shouldEqual(expectedScore)
+  }
+
+  def playGame(pins: List[Int]): Unit = {
+    var game = Game()
+
+    pins.foreach{pin =>
+      game = game.recordThrow(pin)
+    }
+  }
 }
